@@ -1,17 +1,22 @@
-const { Telegraf, Markup, session } = require('telegraf');
+const express = require('express');
+const { Telegraf, Markup } = require('telegraf');
 const path = require('path'); 
 
-
 const BOT_TOKEN = '7975724182:AAFG32toGVhdT3fSi_D2z2nzeTw-qnvKXNM';
-const CHAT_ID='672219639';
+CHAT_ID=672219639;
 
-
-
+const app = express();
 const bot = new Telegraf(BOT_TOKEN);
 
+app.use(express.json());
 
-bot.use(session());
+app.post(`/webhook`, (req, res) => {
+    bot.handleUpdate(req.body); 
+    res.status(200).send('OK'); 
+});
 
+const WEBHOOK_URL = `https://telegramBot.onrender.com/webhook`; 
+bot.telegram.setWebhook(WEBHOOK_URL);
 
 const ensureSession = (ctx) => {
     if (!ctx.session) {
@@ -19,15 +24,14 @@ const ensureSession = (ctx) => {
     }
 };
 
-
 const backToMenuMarkup = () => {
     return Markup.inlineKeyboard([
-        [Markup.button.callback('Back to Menu', 'back_to_menu')]
+        [Markup.button.callback('Back to Menu', 'back_to_menu')],
+        [Markup.button.url('Visit Our Website', 'https://niadevelopers.site')] 
     ]);
 };
 
-
-bot.command('start', (ctx) => {
+bot.start((ctx) => {
     ctx.reply('Welcome to NIADEVELOPERS BOT DEMO! To begin, please select an option:',
         Markup.inlineKeyboard([
             [Markup.button.callback('View Products', 'view_products')],
@@ -35,12 +39,11 @@ bot.command('start', (ctx) => {
             [Markup.button.callback('Enter Product Code', 'enter_product_code')],
             [Markup.button.callback('Enter Service Code', 'enter_service_code')],
             [Markup.button.callback('Contact Support', 'contact_support')],
-            [Markup.button.url('Visit Our Website', 'https://niadevelopers.site')],
-            [Markup.button.url('Donate to Us 😎', 'https://Ko-fi.com/niadevelopers')] 
+            [Markup.button.url('Visit Our Website', 'https:niadevelopers.site')], // Another button for external website
+            [Markup.button.url('Donate to Us 😎', 'https://Ko-fi.com/niadevelopers')]
         ])
     );
 });
-
 
 bot.action('view_products', async (ctx) => {
     ensureSession(ctx);
@@ -286,6 +289,8 @@ bot.action('contact_support', (ctx) => {
 });
 
 
-bot.launch()
-    .then(() => console.log('Bot is running!'))
-    .catch((error) => console.error('Error launching bot:', error));
+const PORT =3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
